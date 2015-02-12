@@ -53,6 +53,7 @@ modifiers = {
     "left alt": (8,1),
     "right alt": (13,16)
 }
+last_keyboard = None
 last_pressed = set()
 last_pressed_adjusted = set()
 last_modifier_state = {}
@@ -151,9 +152,11 @@ def fetch_keys_raw():
 
 
 def fetch_keys():
-    global caps_lock_state, last_pressed, last_pressed_adjusted, last_modifier_state
+    global caps_lock_state, last_pressed, last_pressed_adjusted, last_modifier_state, last_keyboard
     keypresses_raw = fetch_keys_raw()
-
+    if keypresses_raw.raw == last_keyboard:
+        return False, None, None
+    last_keyboard = keypresses_raw.raw
 
     # check modifier states (ctrl, alt, shift keys)
     modifier_state = {}
@@ -178,7 +181,8 @@ def fetch_keys():
         if o:
             for byte,key in key_mapping.get(i, {}).iteritems():
                 if byte & o:
-                    if isinstance(key, tuple): key = key[shift or caps_lock_state]
+                    if isinstance(key, tuple):
+                        key = key[shift or caps_lock_state]
                     pressed.append(key)
 
     
