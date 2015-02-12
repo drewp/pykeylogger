@@ -59,6 +59,9 @@ last_pressed_adjusted = set()
 last_modifier_state = {}
 caps_lock_state = 0
 
+# turn this off if you want to receive '1' instead of '!'
+return_shifted_values = True
+
 # key is byte number, value is a dictionary whose
 # keys are values for that byte, and values are the
 # keys corresponding to those byte values
@@ -182,7 +185,8 @@ def fetch_keys():
             for byte,key in key_mapping.get(i, {}).iteritems():
                 if byte & o:
                     if isinstance(key, tuple):
-                        key = key[shift or caps_lock_state]
+                        key = key[(shift or caps_lock_state)
+                                  if return_shifted_values else 0]
                     pressed.append(key)
 
     
