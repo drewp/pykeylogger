@@ -26,21 +26,14 @@
 
 import sys
 from time import sleep, time
-import ctypes as ct
-from ctypes.util import find_library
-
+from Xlib.display import Display
 
 # linux only!
 assert("linux" in sys.platform)
 
 
-x11 = ct.cdll.LoadLibrary(find_library("X11"))
-display = x11.XOpenDisplay(None)
+display = Display()
 
-
-# this will hold the keyboard state.  32 bytes, with each
-# bit representing the state for a single key.
-keyboard = (ct.c_char * 32)()
 
 # these are the locations (byte, byte value) of special
 # keys to watch
@@ -149,38 +142,36 @@ key_mapping = {
 
 
 def fetch_keys_raw():
-    x11.XQueryKeymap(display, keyboard)
-    return keyboard
+    return display.query_keymap()
 
 
 
 def fetch_keys():
     global caps_lock_state, last_pressed, last_pressed_adjusted, last_modifier_state, last_keyboard
     keypresses_raw = fetch_keys_raw()
-    if keypresses_raw.raw == last_keyboard:
+    if keypresses_raw == last_keyboard:
         return False, None, None
-    last_keyboard = keypresses_raw.raw
+    last_keyboard = keypresses_raw
 
     # check modifier states (ctrl, alt, shift keys)
     modifier_state = {}
     for mod, (i, byte) in modifiers.iteritems():
-        modifier_state[mod] = bool(ord(keypresses_raw[i]) & byte)
+        modifier_state[mod] = bool(keypresses_raw[i] & byte)
     
     # shift pressed?
     shift = 0
     for i, byte in shift_keys:
-        if ord(keypresses_raw[i]) & byte:
+        if keypresses_raw[i] & byte:
             shift = 1
             break
 
     # caps lock state
-    if ord(keypresses_raw[8]) & 4: caps_lock_state = int(not caps_lock_state)
+    if keypresses_raw[8] & 4: caps_lock_state = int(not caps_lock_state)
 
 
     # aggregate the pressed keys
     pressed = []
-    for i, k in enumerate(keypresses_raw):
-        o = ord(k)
+    for i, o in enumerate(keypresses_raw):
         if o:
             for byte,key in key_mapping.get(i, {}).iteritems():
                 if byte & o:

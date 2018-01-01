@@ -11,4 +11,7 @@ setup(name='pykeylogger',
       packages=['pykeylogger'],
       package_dir={'pykeylogger': '.'},
       classifiers='License :: OSI Approved :: BSD License',
+      install_requires=[
+          'python-xlib',
+      ],
      )
